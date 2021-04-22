@@ -6,65 +6,68 @@ import './spacexlp.css';
 function Spacexlp(){
     const baseURL=new URL('https://api.spacexdata.com/v3/launches?limit=100');
 
-    // const [defaultProgramInfo,setdefaultProgramInfo] = useState([]);
     const [programInfo,setProgramInfo] = useState([]);
-    const [launchDates, setLaunchDates] = useState([]);
+    const [launchYears, setLaunchYears] = useState([]);
     const [activeBtn, setActiveButton] = useState('');
 
-    var years=[];
+
 
     // Adding params to the URL and firing an API call
-    const changeFilter=(event)=>{
-        baseURL.searchParams.delete(event.target.id);
-        if(event.target.value!==activeBtn){
-            baseURL.searchParams.append(event.target.id,event.target.value);
+    const changeFilter=(event,param,activeType)=>{
+        if(activeType!==activeBtn){
+            baseURL.searchParams.append(param,event.target.value);
+            setActiveButton(activeType);
         }
-        setActiveButton(event.target.value);
-        getLaunchPrograms();
+        else setActiveButton('');
+        getLaunchPrograms(baseURL);
     }
     // API end point for the first-time page load without any Filters:
-    const getLaunchPrograms=()=>{
+    const getLaunchPrograms=(baseURL)=>{
         axios.get(baseURL).then(function(response){
-            if(!years.length){
-                let min=response.data[0].launch_year;
-                let max=response.data[response.data.length-1].launch_year;
-                for(let year=min;year<=max;year++){
-                    let yearButton = <button  className={`btn ${activeBtn?activeBtn===year?"active":"activeC":''}`} id='launch_year' onClick={changeFilter} value={year} key={year} >{year}</button>
-                    years.push(yearButton);
-                }
-            }
-            console.log("hello");
             setProgramInfo(response.data);
         });
     }
-    // const setYears=()=>{
-    // }
+
     useEffect(()=>{
         let isMounted = true;
-        console.log("hello");
-
+        let noFilter = 'https://api.spacexdata.com/v3/launches?limit=100';
         if(isMounted){
-             getLaunchPrograms();
-             setLaunchDates(years); 
+             getLaunchPrograms(noFilter);
         }
-        // if(isMounted)  setYears();
         return () => {
             isMounted = false;
         }
 
     },[])
-    var booleanLaunchButtons = <React.Fragment><button id='launch_success'  value='true' className='btn' onClick={changeFilter}>True</button>
-                        <button  id='launch_success' value='false' className='btn' onClick={changeFilter}>False</button></React.Fragment>;
-    var booleanLandButtons = <React.Fragment><button id='land_success' value='true' className='btn' onClick={changeFilter}>True</button>
-                        <button  id='land_success' value='false' className='btn' onClick={changeFilter}>False</button></React.Fragment>;
+    //Setting the filter launch year from the response
+    useEffect(()=>{
+        axios.get('https://api.spacexdata.com/v3/launches?limit=100').then(function(response){
+            let min=response.data[0].launch_year;
+            let max=response.data[response.data.length-1].launch_year;
+            let years=[];
+            for(let year=min;year<=max;year++){
+                years.push(year);
+            }
+            setLaunchYears(years); 
+        });
+    },[]);
+
+    var booleanLaunchButtons = <React.Fragment><button id='filter'  className={`btn ${activeBtn?activeBtn==='launch_success'?"active":"":''}`} value='true'  onClick={(event)=>changeFilter(event,'launch_success','launch_success')}>True</button>
+                        <button  id='filter' value='false' className={`btn ${activeBtn?activeBtn==='no_launch_success'?"active":"":''}`} onClick={(event)=>changeFilter(event,'launch_success','no_launch_success')}>False</button></React.Fragment>;
+    var booleanLandButtons = <React.Fragment><button id='filter' className={`btn ${activeBtn?activeBtn==='land_success'?"active":"":''}`} value='true' onClick={(event)=>changeFilter(event,'land_success','land_success')}>True</button>
+                        <button  id='filter' value='false' className={`btn ${activeBtn?activeBtn==='no_land_success'?"active":"":''}`} onClick={(event)=>changeFilter(event,'land_success','no_land_success')}>False</button></React.Fragment>;
+    
 
     return (
         <div className="spacexlp">
             <div className='filter-programs'>
-                <h3>Filters</h3>
+                <h2>Filters</h2>
                 <p className='filter-type'>Launch Year</p>
                 <div className='filter-buttons'>
-                    {launchDates?launchDates:null}
+                    {launchYears?launchYears.map((year)=>{
+                        return <button  className={`btn ${activeBtn?activeBtn===year?"active":"":''}`} 
+                        id='filter' onClick={(event)=>changeFilter(event,'launch_year',year)} value={year} key={year} >{year}</button>
+                    }):null}
                 </div>
                 <p  className='filter-type'>Successful Launch</p>
                 <div className='filter-buttons'>
@@ -78,7 +81,7 @@ function Spacexlp(){
             <div className="flights-grid">
                 {programInfo?programInfo.map((flight)=>{
                     return (
-                        <div className='flight-info' key={flight.flight_number}> 
+                        <div className='flight-info' key={flight.mission_name}> 
                             <div className='flight-image-bg'>
                                 <img  className='flight-image' src={flight.links.mission_patch_small} alt={flight.mission_name}></img>
                             </div>
@@ -91,6 +94,7 @@ function Spacexlp(){
                             </ul>
                             <label className='flight-label'><strong>Launch Year:</strong> {flight.launch_year}</label>
                             <label className='flight-label'><strong>Successful Launch:</strong>{flight.launch_success?'true':'false'}</label>
+                            {/* 'launch_landing' attribute not found  and land_success was also not clear*/}
                             <label className='flight-label'><strong>Successful Landing:</strong>{flight.rocket.cores?flight.rocket.cores[0].land_success?'true':'false':null}</label>
                         </div>
                     )
