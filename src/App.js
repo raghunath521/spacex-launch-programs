@@ -1,24 +1,15 @@
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
+import Spacexlp from './spacexlp/spacexlp';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    const developer = 'Venkata Raghu';
+    return (
+      <div className="main-content">
+        <h1>SpaceX Launch Programs</h1>
+        <Spacexlp ></Spacexlp>
+        <h3 className='footer'>Developed by: {developer}</h3>
+      </div>
   );
 }
 
