@@ -4,21 +4,22 @@ import './spacexlp.css';
 
 
 function Spacexlp(){
-    const baseURL=new URL('https://api.spacexdata.com/v3/launches?limit=100');
+    const [baseURL]=useState(new URL('https://api.spacexdata.com/v3/launches?limit=100'));
 
     const [programInfo,setProgramInfo] = useState([]);
     const [launchYears, setLaunchYears] = useState([]);
-    const [activeBtn, setActiveButton] = useState('');
+    const [activeBtn, setActiveBtn] = useState({launch_year:'',launch_success:'',land_success:''});
 
 
 
     // Adding params to the URL and firing an API call
     const changeFilter=(event,param,activeType)=>{
-        if(activeType!==activeBtn){
+        baseURL.searchParams.delete(param);
+        if(activeType!==activeBtn[param]){
             baseURL.searchParams.append(param,event.target.value);
-            setActiveButton(activeType);
+            setActiveBtn({...activeBtn,[param]:activeType});
         }
-        else setActiveButton('');
+        else setActiveBtn({...activeBtn,[param]:''});
         getLaunchPrograms(baseURL);
     }
     // API end point for the first-time page load without any Filters:
@@ -52,10 +53,10 @@ function Spacexlp(){
         });
     },[]);
 
-    var booleanLaunchButtons = <React.Fragment><button id='filter'  className={`btn ${activeBtn?activeBtn==='launch_success'?"active":"":''}`} value='true'  onClick={(event)=>changeFilter(event,'launch_success','launch_success')}>True</button>
-                        <button  id='filter' value='false' className={`btn ${activeBtn?activeBtn==='no_launch_success'?"active":"":''}`} onClick={(event)=>changeFilter(event,'launch_success','no_launch_success')}>False</button></React.Fragment>;
-    var booleanLandButtons = <React.Fragment><button id='filter' className={`btn ${activeBtn?activeBtn==='land_success'?"active":"":''}`} value='true' onClick={(event)=>changeFilter(event,'land_success','land_success')}>True</button>
-                        <button  id='filter' value='false' className={`btn ${activeBtn?activeBtn==='no_land_success'?"active":"":''}`} onClick={(event)=>changeFilter(event,'land_success','no_land_success')}>False</button></React.Fragment>;
+    var booleanLaunchButtons = <React.Fragment><button id='filter'  className={`btn ${activeBtn.launch_success?activeBtn.launch_success==='launch_success'?"active":"":''}`} value='true'  onClick={(event)=>changeFilter(event,'launch_success','launch_success')}>True</button>
+                        <button  id='filter' value='false' className={`btn ${activeBtn.launch_success?activeBtn.launch_success==='no_launch_success'?"active":"":''}`} onClick={(event)=>changeFilter(event,'launch_success','no_launch_success')}>False</button></React.Fragment>;
+    var booleanLandButtons = <React.Fragment><button id='filter' className={`btn ${activeBtn.land_success?activeBtn.land_success==='land_success'?"active":"":''}`} value='true' onClick={(event)=>changeFilter(event,'land_success','land_success')}>True</button>
+                        <button  id='filter' value='false' className={`btn ${activeBtn.land_success?activeBtn.land_success==='no_land_success'?"active":"":''}`} onClick={(event)=>changeFilter(event,'land_success','no_land_success')}>False</button></React.Fragment>;
     
 
     return (
@@ -65,7 +66,7 @@ function Spacexlp(){
                 <p className='filter-type'>Launch Year</p>
                 <div className='filter-buttons'>
                     {launchYears?launchYears.map((year)=>{
-                        return <button  className={`btn ${activeBtn?activeBtn===year?"active":"":''}`} 
+                        return <button  className={`btn ${activeBtn.launch_year?activeBtn.launch_year===year?"active":"":''}`} 
                         id='filter' onClick={(event)=>changeFilter(event,'launch_year',year)} value={year} key={year} >{year}</button>
                     }):null}
                 </div>
